@@ -14,7 +14,7 @@ type Server struct {
 }
 
 func (s *Server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
-	fmt.Printf("Greet Function was called %v", req)
+	fmt.Printf("Greet Function was called %v\n", req)
 	firstname := req.GetGreeting().GetFirstName()
 	result := "Hello " + firstname
 	res := &greetpb.GreetResponse{Result: result}
@@ -22,7 +22,7 @@ func (s *Server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb
 }
 
 func main() {
-	fmt.Println("Hello world")
+	fmt.Println("Hello world from greet server")
 
 	// create listener on default port 50051
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
