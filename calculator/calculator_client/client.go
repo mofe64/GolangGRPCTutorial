@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"grpc_tutorial/calculator/calculatorpb"
 	"io"
 	"log"
@@ -32,7 +34,34 @@ func main() {
 	//performUnaryOp(c)
 	//performServerStreamingOp(c)
 	//performClientStreamingOp(c)
-	performBiDirectionalStreamingOp(c)
+	//performBiDirectionalStreamingOp(c)
+	performUnaryOp2(c)
+
+}
+
+func performUnaryOp2(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("Starting calc Unary RPC Op...")
+	request := &calculatorpb.SquareRootRequest{
+		Number: -10,
+	}
+	sqrt, err := c.SquareRoot(context.Background(), request)
+	if err != nil {
+		respErr, ok := status.FromError(err)
+		// ok signifies user error occurred
+		if ok {
+			fmt.Println(respErr.Message())
+			fmt.Println(respErr.Code())
+			if respErr.Code() == codes.InvalidArgument {
+				fmt.Println("Invalid arg")
+				return
+			}
+		} else {
+			log.Fatalf("Internal Error calling rpc %v", err)
+			return
+		}
+
+	}
+	log.Printf("response from calc %v", sqrt.GetNumber())
 }
 
 func performUnaryOp(c calculatorpb.CalculatorServiceClient) {
