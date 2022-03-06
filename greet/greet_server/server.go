@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"grpc_tutorial/greet/greetpb"
 	"io"
 	"log"
@@ -24,6 +26,21 @@ func (s *Server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb
 	return res, nil
 }
 
+func (s *Server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+	fmt.Printf("Greet Function was called %v\n", req)
+	for i := 0; i < 3; i++ {
+		if ctx.Err() == context.Canceled {
+			// Client canceled request
+			fmt.Println("client canceled")
+			return nil, status.Error(codes.Canceled, "client canceled")
+		}
+		time.Sleep(1 * time.Second)
+	}
+	firstname := req.GetGreeting().GetFirstName()
+	result := "Hello " + firstname
+	res := &greetpb.GreetResponse{Result: result}
+	return res, nil
+}
 func (s *Server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
 	fmt.Printf("Greet Many Times Function was called %v\n", req)
 	firstname := req.GetGreeting().GetFirstName()
