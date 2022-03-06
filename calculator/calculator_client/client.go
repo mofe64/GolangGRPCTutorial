@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"grpc_tutorial/calculator/calculatorpb"
+	"io"
 	"log"
 )
 
@@ -27,7 +28,8 @@ func main() {
 	}(conn)
 
 	c := calculatorpb.NewCalculatorServiceClient(conn)
-	performUnaryOp(c)
+	//performUnaryOp(c)
+	performServerStreamingOp(c)
 }
 
 func performUnaryOp(c calculatorpb.CalculatorServiceClient) {
@@ -42,4 +44,27 @@ func performUnaryOp(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("Error calling rpc %v", err)
 	}
 	log.Printf("response from calc %v", sum)
+}
+
+func performServerStreamingOp(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("Starting calculator Server Streaming RPC Op...")
+	req := &calculatorpb.PrimeNumberDecompositionRequest{
+		Number: 12,
+	}
+	stream, err := c.PrimeNumberDecomposition(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Error calling server stream rpc: %v", err)
+	}
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			log.Println("End of stream ...")
+			break
+		}
+		if err != nil {
+			log.Fatalf("Error reading stream %v", err)
+		}
+		log.Printf("res from server streaming %v", msg.GetPrimeFactor())
+
+	}
 }

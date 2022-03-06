@@ -7,6 +7,8 @@ import (
 	"grpc_tutorial/greet/greetpb"
 	"log"
 	"net"
+	"strconv"
+	"time"
 )
 
 type Server struct {
@@ -19,6 +21,25 @@ func (s *Server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb
 	result := "Hello " + firstname
 	res := &greetpb.GreetResponse{Result: result}
 	return res, nil
+}
+
+func (s *Server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
+	fmt.Printf("Greet Many Times Function was called %v\n", req)
+	firstname := req.GetGreeting().GetFirstName()
+	for i := 0; i < 10; i++ {
+		result :=
+			"Hello " + firstname + " number " + strconv.Itoa(i)
+		res := &greetpb.GreetManyTimesResponse{
+			Result: result,
+		}
+		err := stream.Send(res)
+		if err != nil {
+			log.Fatalf("error streaming greet many times response %v", err)
+
+		}
+		time.Sleep(1000 * time.Millisecond)
+	}
+	return nil
 }
 
 func main() {

@@ -25,6 +25,28 @@ func (s *Server) CalculateSum(ctx context.Context, req *calculatorpb.SumRequest)
 
 }
 
+func (s *Server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositionRequest,
+	stream calculatorpb.CalculatorService_PrimeNumberDecompositionServer) error {
+	fmt.Printf("recieved prime number decomposition server stram rpc %v\n", req)
+	number := req.GetNumber()
+	divisor := int64(2)
+
+	for number > 1 {
+		if number%divisor == 0 {
+			err := stream.Send(&calculatorpb.PrimeNumberDecompositionResponse{
+				PrimeFactor: divisor,
+			})
+			if err != nil {
+				log.Fatalf("Error sending stream %v \n", err)
+			}
+			number = number / divisor
+		} else {
+			divisor++
+		}
+	}
+	return nil
+}
+
 func main() {
 	fmt.Println("Hello World from calc server")
 
