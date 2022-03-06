@@ -15,7 +15,20 @@ import (
 
 func main() {
 	fmt.Println("Hello world from greet client")
+	// setup ssl credentials
+	//certFile := "ssl/ca.crt" // certificate auth trust cert
+	//creds, sslError := credentials.NewClientTLSFromFile(certFile, "")
+	//if sslError != nil {
+	//	log.Fatalf("Error loading ca trust cert %v\n", sslError)
+	//	return
+	//}
+
+	// without ssl
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	// with ssl
+	//opts := grpc.WithTransportCredentials(creds)
+	//conn, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
 		log.Fatalf("Could not connect %v", err)
 	}
@@ -26,12 +39,12 @@ func main() {
 		}
 	}(conn)
 	c := greetpb.NewGreetServiceClient(conn)
-	//performUnaryOp(c)
+	performUnaryOp(c)
 	//performServerStreamingOp(c)
 	//performClientStreamingOp(c)
 	//performBiDirectionalStreamingOp(c)
-	performUnaryOpWithDeadline(c, 5*time.Second) //SHOULD COMPLETE
-	performUnaryOpWithDeadline(c, 1*time.Second) //SHOULD FAIL
+	//performUnaryOpWithDeadline(c, 5*time.Second) //SHOULD COMPLETE
+	//performUnaryOpWithDeadline(c, 1*time.Second) //SHOULD FAIL
 
 }
 

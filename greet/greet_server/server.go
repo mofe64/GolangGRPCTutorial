@@ -109,7 +109,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to listen %v", err)
 	}
+	// create ssl creds
+	//certFile := "ssl/server.crt"
+	//keyFile := "ssl/server.pem"
+	//creds, sslErr := credentials.NewServerTLSFromFile(certFile, keyFile)
+	//if sslErr != nil {
+	//	log.Fatalf("Failed to load certs %v\n", sslErr)
+	//	return
+	//}
+	//opts := grpc.Creds(creds)
 	// create grpc server
+	//s := grpc.NewServer(opts)
 	s := grpc.NewServer()
 
 	// Register a service
