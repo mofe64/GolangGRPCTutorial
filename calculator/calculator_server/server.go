@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"grpc_tutorial/calculator/calculatorpb"
 	"io"
@@ -115,6 +116,7 @@ func main() {
 	}
 	s := grpc.NewServer()
 	calculatorpb.RegisterCalculatorServiceServer(s, &Server{})
+	reflection.Register(s) // enable reelection we can now use evans cli to interact with server
 
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve %v", err)
