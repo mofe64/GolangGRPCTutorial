@@ -18,10 +18,16 @@ message PrimeNumberDecompositionRequest{
 message PrimeNumberDecompositionResponse{
   int64 prime_factor = 1;
 };
-
+message ComputeAverageRequest {
+  int32 number = 1;
+}
+message ComputeAverageResponse {
+  double average = 1;
+}
 service CalculatorService{
   // Unary
   rpc CalculateSum(SumRequest) returns (SumResponse) {};
   rpc PrimeNumberDecomposition(PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {};
+  rpc ComputeAverage(stream ComputeAverageRequest) returns (ComputeAverageResponse) {};
 
 }
