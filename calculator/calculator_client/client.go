@@ -8,6 +8,7 @@ import (
 	"grpc_tutorial/calculator/calculatorpb"
 	"io"
 	"log"
+	"time"
 )
 
 func main() {
@@ -30,7 +31,8 @@ func main() {
 	c := calculatorpb.NewCalculatorServiceClient(conn)
 	//performUnaryOp(c)
 	//performServerStreamingOp(c)
-	performClientStreamingOp(c)
+	//performClientStreamingOp(c)
+	performBiDirectionalStreamingOp(c)
 }
 
 func performUnaryOp(c calculatorpb.CalculatorServiceClient) {
@@ -89,4 +91,44 @@ func performClientStreamingOp(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("Error closing stream %v\n", err)
 	}
 	fmt.Printf("Average is %v\n", res.Average)
+}
+func performBiDirectionalStreamingOp(c calculatorpb.CalculatorServiceClient) {
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("Error opening stream %v\n", err)
+	}
+	waitC := make(chan struct{})
+	go func() {
+		numbers := []int32{4, 7, 6, 34, 12, 19, 45, 34, 12, 43, 65, 12, 5, 6, 8, 0, 123, 5, 7, 8, 678}
+		for _, num := range numbers {
+			err := stream.Send(&calculatorpb.FindMaximumRequest{
+				Number: num,
+			})
+			time.Sleep(1000 * time.Millisecond)
+			if err != nil {
+				log.Fatalf("Error sending data  %v\n", err)
+			}
+		}
+		err := stream.CloseSend()
+		if err != nil {
+			log.Fatalf("Error closing stream %v\n", err)
+		}
+	}()
+
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error receiving data %v\n", err)
+			}
+			max := res.GetNumber()
+			fmt.Printf("Received new max of .... %v\n", max)
+		}
+		close(waitC)
+	}()
+
+	<-waitC
 }

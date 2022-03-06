@@ -26,7 +26,8 @@ func main() {
 	c := greetpb.NewGreetServiceClient(conn)
 	//performUnaryOp(c)
 	//performServerStreamingOp(c)
-	performClientStreamingOp(c)
+	//performClientStreamingOp(c)
+	performBiDirectionalStreamingOp(c)
 
 }
 
@@ -124,4 +125,90 @@ func performClientStreamingOp(c greetpb.GreetServiceClient) {
 		log.Fatalf("Error while receieving res %v\n", err)
 	}
 	fmt.Printf("res %v\n", res)
+}
+
+func performBiDirectionalStreamingOp(c greetpb.GreetServiceClient) {
+	fmt.Println("Starting Bi directional Streaming RPC Op...")
+
+	requests := []*greetpb.GreetEveryoneRequest{
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Mofe",
+				LastName:  "Test",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Mofe",
+				LastName:  "Test",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Sam",
+				LastName:  "Test",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Tade",
+				LastName:  "Test",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Tayo",
+				LastName:  "Test",
+			},
+		},
+	}
+	// create stream
+	stream, err := c.GreetEveryone(context.Background())
+	if err != nil {
+		log.Fatalf("error while creating stream %v\n", err)
+	}
+
+	// Create a wait channel
+	waitC := make(chan struct{})
+
+	// send messages to server in go routine
+	go func() {
+		for _, req := range requests {
+			fmt.Println("Attempting to send message")
+			err := stream.Send(req)
+			time.Sleep(1000 * time.Millisecond)
+			if err != nil {
+				log.Fatalf("Error sending message %v\n", err)
+				return
+			}
+			fmt.Println("Message sent")
+		}
+		err := stream.CloseSend()
+		if err != nil {
+			log.Fatalf("Error closing stream %v\n", err)
+			return
+		}
+	}()
+
+	// receive messages from server in go routine
+	go func() {
+		// receive data from server
+		for {
+			res, err := stream.Recv()
+			// if eof encountered i.e. No more data is being sent by the server
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error receiving message %v\n", err)
+			}
+			fmt.Printf("received %v\n", res.GetResult())
+		}
+		// close our wait channel and unblock function
+		close(waitC)
+	}()
+
+	//block until all operations are done
+	<-waitC
+
 }
